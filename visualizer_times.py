@@ -21,7 +21,7 @@ class VisualizerTimes(QWidget):
         self.qlw.clear()
         self.qlw.addItems(list)
 
-    def setAggregatedItem(self, item: QTreeWidgetItem, listSearchItem: list[SearchItem]):
+    def setAggregatedItem(self, item: QTreeWidgetItem, listSearchItem: SearchItem):
         items = []
         for searchItem in listSearchItem:
             treeItem = QTreeWidgetItem(item, [searchItem.name, timeRepresentation(searchItem.time)])
@@ -29,13 +29,12 @@ class VisualizerTimes(QWidget):
             treeItem.addChildren(self.setAggregatedItem(treeItem, searchItem.subItems))
         return items
 
-    def setAggregated(self, listSearchItem: list[SearchItem]):
+    def setAggregated(self, searchItem: SearchItem):
         self.qtw.clear()
         items = []
-        for searchItem in listSearchItem:
-            treeItem = QTreeWidgetItem(self.qtw, [searchItem.name, timeRepresentation(searchItem.time)])
-            items.append(treeItem)
-            treeItem.addChildren(self.setAggregatedItem(items[-1], searchItem.subItems))
+        treeItem = QTreeWidgetItem(self.qtw, [searchItem.name, timeRepresentation(searchItem.time)])
+        items.append(treeItem)
+        treeItem.addChildren(self.setAggregatedItem(items[-1], searchItem.subItems))
         self.qtw.addTopLevelItems(items)
     
     def updateAggregated(self, listSearchItem: list[SearchItem]):

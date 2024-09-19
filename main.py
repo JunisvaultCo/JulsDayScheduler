@@ -28,7 +28,7 @@ class MainWindow(QMainWindow):
             with open(self.file_name, 'r') as file:
                 self.times = json.load(file)
         #TODO: add more options files as options
-        self.options_file_name = "options.txt"
+        self.options_file_name = "options.json"
 
         layout = QVBoxLayout()
 
@@ -49,8 +49,8 @@ class MainWindow(QMainWindow):
 
         self.show()
 
-        self.checkers = []
-        self.options = []
+        self.checkers = None
+        self.options = {"name": "All", "others": [], "pattern": "", "type": "contains"}
         if os.path.exists(self.options_file_name):
             with open(self.options_file_name, 'r') as file:
                 self.options = json.load(file)
@@ -69,28 +69,25 @@ class MainWindow(QMainWindow):
 
     def updateAggregated(self, optimised: bool, lastResult):
         if not optimised:
-            self.checkers = []
-            for j in self.options:
-                s = SearchItem(j["name"], j["type"], j["pattern"], 0)
-                self.checkers.append(s)
-                appends(s, j, 1)
+            self.checkers = SearchItem(self.options["name"], self.options["type"], self.options["pattern"], 0)
+            appends(self.checkers, self.options, 1)
             for i in self.times.keys():
-                for j in self.checkers:
-                    j.apply(i, self.times[i])
+                self.checkers.apply(i, self.times[i])
             self.visualizer.setAggregated(self.checkers)
         elif lastResult != None:
             applied = []
-            for j in self.checkers:
-                applied.extend(j.apply(lastResult, 1))
+            applied.extend(self.checkers.apply(lastResult, 1))
             self.visualizer.updateAggregated(applied)
-    def searchCheckers(self, listSearchItem: list[SearchItem], name: str):
-        for searchItem in listSearchItem:
-            if searchItem.name == name:
-                return searchItem
-            subResult = self.searchCheckers(searchItem.subItems, name)
+
+    def searchCheckers(self, searchItem: SearchItem, name: str):
+        if searchItem.name == name:
+            return searchItem
+        for i in searchItem.subItems:
+            subResult = self.searchCheckers(i, name)
             if subResult != None:
                 return subResult
         return None
+
     def main_loop(self):
         titles = getWindowTitles()
         result = GetForegroundWindowTitle()
@@ -100,7 +97,8 @@ class MainWindow(QMainWindow):
         else:
             self.times[result] = 1
         self.updateAggregated(True, result)
-
+        if self.visualizer.qtw.currentItem() == None:
+            self.visualizer.qtw.setCurrentItem(self.visualizer.qtw.itemAt(0, 0))
         nameFilter = self.visualizer.qtw.currentItem().data(0, Qt.ItemDataRole.DisplayRole)
         filter = self.searchCheckers(self.checkers, nameFilter)
         if filter == None:

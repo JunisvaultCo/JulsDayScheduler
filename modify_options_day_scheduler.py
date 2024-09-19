@@ -71,7 +71,7 @@ class OptionsLine(QWidget):
         return self.storedState
 
 class OptionsWindow(QMainWindow):
-    save_options_sig = pyqtSignal(list)
+    save_options_sig = pyqtSignal(dict)
     def __init__(self, options, *args, **kwargs):
         super(OptionsWindow, self).__init__(*args, **kwargs)
         self.options = options
@@ -102,24 +102,19 @@ class OptionsWindow(QMainWindow):
         w = QWidget()
         w.setLayout(layout)
 
-        self.children = []
+        self.child = None
         self.setCentralWidget(w)
         
         self.draw_options()
         self.show()
     def draw_options(self):
-        for j in self.options:
-            s = OptionsLine(j)
-            self.layoutGroup.addWidget(s)
-            self.children.append(s)
+        self.child = OptionsLine(self.options)
+        self.layoutGroup.addWidget(self.child)
         
     def add_option(self):
-        newOption = OptionsLine({"type": TYPE_EQUAL, "name": "", "others": [], "pattern": ""})
-        self.layoutGroup.addWidget(newOption)
-        self.children.append(newOption)
+        self.child = OptionsLine({"type": TYPE_EQUAL, "name": "", "others": [], "pattern": ""})
+        self.layoutGroup.addWidget(self.child)
 
     def save_options(self):
-        self.options = []
-        for i in self.children:
-            self.options.append(i.getState())
+        self.options = self.child.getState()
         self.save_options_sig.emit(self.options)
