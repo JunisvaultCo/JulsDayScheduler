@@ -6,9 +6,10 @@ from PyQt6.QtWidgets import *
 from PyQt6.QtCore import *
 
 class OptionsLine(QWidget):
-    def __init__(self, definingOption, *args, **kwargs):
+    def __init__(self, number, definingOption, *args, **kwargs):
         super(OptionsLine, self).__init__(*args, **kwargs)
         self.storedState = definingOption
+        self.number = number
         self.updateFromState()
 
     def updateFromState(self):
@@ -23,6 +24,9 @@ class OptionsLine(QWidget):
         type = self.storedState["type"]
         name = self.storedState["name"]
         pattern = self.storedState["pattern"]
+
+        self.numberL = QLabel(self.number)
+        self.layoutIn.addWidget(self.numberL)
 
         self.nameL = QLineEdit(self)
         self.nameL.setText(name)
@@ -51,12 +55,14 @@ class OptionsLine(QWidget):
 
         self.children = []
         for i in others:
-            newI = OptionsLine(i)
+            num = self.number + str(len(self.children) + 1) + "."
+            newI = OptionsLine(num, i)
             self.children.append(newI)
             self.layoutOut.addWidget(newI)
 
     def add_option(self):
-        newChild = OptionsLine({"type": TYPE_EQUAL, "name": "", "others": [], "pattern": ""})
+        num = self.number + "." + str(len(self.children) + 1)
+        newChild = OptionsLine(num, {"type": TYPE_EQUAL, "name": "", "others": [], "pattern": ""})
         self.children.append(newChild)
         self.layoutOut.addWidget(newChild)
 
@@ -105,7 +111,7 @@ class OptionsWindow(QMainWindow):
         self.draw_options()
         self.show()
     def draw_options(self):
-        self.child = OptionsLine(self.options)
+        self.child = OptionsLine("", self.options)
         self.layoutGroup.addWidget(self.child)
 
     def save_options(self):
