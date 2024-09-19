@@ -50,7 +50,7 @@ class MainWindow(QMainWindow):
         self.show()
 
         self.checkers = None
-        self.options = {"name": "All", "others": [], "pattern": "", "type": "contains"}
+        self.options = {"name": "All", "others": [], "pattern": "", "type": TYPE_CONTAINS}
         if os.path.exists(self.options_file_name):
             with open(self.options_file_name, 'r') as file:
                 self.options = json.load(file)
@@ -86,6 +86,8 @@ class MainWindow(QMainWindow):
             subResult = self.searchCheckers(i, name)
             if subResult != None:
                 return subResult
+        if searchItem.other != None:
+            return self.searchCheckers(searchItem.other, name)
         return None
 
     def main_loop(self):
@@ -103,12 +105,10 @@ class MainWindow(QMainWindow):
         filter = self.searchCheckers(self.checkers, nameFilter)
         if filter == None:
             print("Shouldn't have gotten here, nameFilter:", nameFilter)
-        filter = filter.checker
         sortedList = []
-        for i in self.times:
-            if filter.applies(i):
-                elem = App(self.times[i], i)
-                sortedList.append(elem)
+        for i in filter.times.keys():
+            elem = App(filter.times[i], i)
+            sortedList.append(elem)
         sortedList.sort(key = lambda x : x.time, reverse=True)
         output = []
         for i in sortedList:
@@ -123,9 +123,6 @@ class MainWindow(QMainWindow):
         with open(self.options_file_name, 'w') as file:
             file.write(json.dumps(self.options))
         self.updateAggregated(False, "")
-        
-    def getOptionsCopy(self):
-        return copy.deepcopy(self.options)
 
 
 app = QApplication([])

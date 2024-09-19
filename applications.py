@@ -52,15 +52,21 @@ class EqualChecker(Checker):
         return string == self.stringToSearch
 
 class SearchItem():
-    def __init__(self, name: str, checker: Checker, level: int):
+    
+    def otherInit(self, name: str, level:int):
         self.name = name
-        self.checker = checker
         self.subItems = []
         self.time = 0
         self.level = level
+        self.other = None
+        self.times = {}
+
+    def __init__(self, name: str, checker: Checker, level: int):
+        self.checker = checker
+        self.otherInit(name, level)
 
     def __init__(self, name: str, checker: str, pattern: str, level: int):
-        self.name = name
+        self.otherInit(name, level)
         if checker == TYPE_CONTAINS:
             self.checker = FindingChecker(pattern)
         elif checker == TYPE_EQUAL:
@@ -69,11 +75,11 @@ class SearchItem():
             self.checker = EndingChecker(pattern)
         else:
             print("wrong type", checker)
-        self.subItems = []
-        self.time = 0
-        self.level = level
 
     def addToSubItems(self, subitem):
+        if self.other == None:
+            self.other = SearchItem("Misc " + self.name, TYPE_CONTAINS, "", self.level + 1)
+
         if type(subitem) != type(self):
             print("trying to add wrong type to addToSubItems, adding", type(subitem))
         self.subItems.append(subitem)
@@ -83,9 +89,15 @@ class SearchItem():
         if not self.checker.applies(string):
             return result
         self.time = self.time + time
+        if string in self.times.keys():
+            self.times[string] += time
+        else:
+            self.times[string] = time
         result.append(self)
         for i in self.subItems:
             result.extend(i.apply(string, time))
+        if len(self.subItems) != 0 and len(result) == 1:
+            result.extend(self.other.apply(string, time))
         return result
 
     def __repr__(self):
