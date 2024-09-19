@@ -80,8 +80,6 @@ class OptionsWindow(QMainWindow):
         layout = QVBoxLayout()
 
         self.l = QLabel("Modify options regarding parsing")
-        b = QPushButton("Add new option")
-        b.pressed.connect(self.add_option)
         save = QPushButton("Save Options")
         save.pressed.connect(self.save_options)
 
@@ -96,7 +94,6 @@ class OptionsWindow(QMainWindow):
 
         layout.addWidget(self.l)
         layout.addWidget(scroll)
-        layout.addWidget(b)
         layout.addWidget(save)
 
         w = QWidget()
@@ -109,10 +106,6 @@ class OptionsWindow(QMainWindow):
         self.show()
     def draw_options(self):
         self.child = OptionsLine(self.options)
-        self.layoutGroup.addWidget(self.child)
-        
-    def add_option(self):
-        self.child = OptionsLine({"type": TYPE_EQUAL, "name": "", "others": [], "pattern": ""})
         self.layoutGroup.addWidget(self.child)
 
     def save_options(self):
