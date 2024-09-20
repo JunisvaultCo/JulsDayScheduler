@@ -121,7 +121,8 @@ class MainWindow(QMainWindow):
             self.updateResult(result, 0)
 
     def returnFromAfk(self, option):
-        self.updateResult(option, self.timeWithoutMods - self.afkTime)
+        self.updateResult(option, self.timeWithoutMods)
+        self.updateResult(self.afkWindow.option, - self.afkTime)
         self.timeWithoutMods = 0
         self.isAFK = False
         self.afkWindow.showLabel()

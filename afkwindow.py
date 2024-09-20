@@ -66,7 +66,7 @@ class AfkWindow(QMainWindow):
 
     def setOptions(self, current: str, otherOptions: list[str]):
         self.option = current
-        self.oldOption.setText("Register as " + self.option)
+        self.oldOption.setText('Register as "' + self.option +'"')
         self.comboBox.clear()
         self.comboBox.addItems(otherOptions)
     
