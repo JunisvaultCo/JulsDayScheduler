@@ -1,16 +1,18 @@
 import time
 import json
-import copy
 import os.path
 from PyQt6.QtWidgets import *
 from PyQt6.QtCore import *
 
 #TODO: make linux variant.
-from main_win import GetForegroundWindowTitle, getWindowTitles
+from main_win import GetForegroundWindowTitle, getWindowTitles, CheckAnyActivitySinceLastTime
 from modify_options_day_scheduler import OptionsWindow
 from visualizer_times import VisualizerTimes
 from applications import *
+from afkwindow import AfkWindow
 
+DEFAULT_MAX_AFK = 30
+app = QApplication([])
 
 def appends(s: SearchItem, i: dict, count: int):
     for j in i["others"]:
@@ -61,22 +63,26 @@ class MainWindow(QMainWindow):
         self.timer.timeout.connect(self.main_loop)
         self.timer.start()
         self.options_window = None
+        self.timeWithoutMods = 0
+        self.afkTime = DEFAULT_MAX_AFK
+        self.afkWindow = None
+        self.isAFK = False
         
     def open_modify_options(self):
         if self.options_window == None or self.options_window.isHidden():
             self.options_window = OptionsWindow(self.options)
             self.options_window.save_options_sig.connect(self.setOptions)
 
-    def updateAggregated(self, optimised: bool, lastResult):
+    def updateAggregated(self, optimised: bool, lastResult: str, time = 1):
         if not optimised:
             self.checkers = SearchItem(self.options["name"], self.options["type"], self.options["pattern"], 0)
-            appends(self.checkers, self.options, 1)
+            appends(self.checkers, self.options, time)
             for i in self.times.keys():
                 self.checkers.apply(i, self.times[i])
             self.visualizer.setAggregated(self.checkers)
         elif lastResult != None:
             applied = []
-            applied.extend(self.checkers.apply(lastResult, 1))
+            applied.extend(self.checkers.apply(lastResult, time))
             self.visualizer.updateAggregated(applied)
 
     def searchCheckers(self, searchItem: SearchItem, name: str):
@@ -93,12 +99,39 @@ class MainWindow(QMainWindow):
     def main_loop(self):
         titles = getWindowTitles()
         result = GetForegroundWindowTitle()
-
-        if result in self.times:
-            self.times[result] += 1
+        if CheckAnyActivitySinceLastTime() and not self.isAFK:
+            self.timeWithoutMods = 0
         else:
-            self.times[result] = 1
-        self.updateAggregated(True, result)
+            self.timeWithoutMods += 1
+            if self.timeWithoutMods == self.afkTime:
+                self.isAFK = True
+                if self.afkWindow == None:
+                    screenrect = app.primaryScreen().availableGeometry()
+                    self.afkWindow = AfkWindow(screenrect)
+                    self.afkWindow.option_sig.connect(self.returnFromAfk)
+                else:
+                    self.afkWindow.showLabel()
+                self.afkWindow.setOptions(result, self.times.keys())
+            if self.timeWithoutMods >= self.afkTime:
+                self.afkWindow.setTime(timeRepresentation(self.timeWithoutMods))
+
+        if not self.isAFK:
+            self.updateResult(result, 1)
+        else:
+            self.updateResult(result, 0)
+
+    def returnFromAfk(self, option):
+        self.updateResult(option, self.timeWithoutMods - self.afkTime)
+        self.timeWithoutMods = 0
+        self.isAFK = False
+        self.afkWindow.showLabel()
+
+    def updateResult(self, result: str, time: int):
+        if result in self.times:
+            self.times[result] += time
+        else:
+            self.times[result] = time
+        self.updateAggregated(True, result, time)
         if self.visualizer.qtw.currentItem() == None:
             self.visualizer.qtw.setCurrentItem(self.visualizer.qtw.itemAt(0, 0))
         nameFilter = self.visualizer.qtw.currentItem().data(0, Qt.ItemDataRole.DisplayRole)
@@ -125,6 +158,5 @@ class MainWindow(QMainWindow):
         self.updateAggregated(False, "")
 
 
-app = QApplication([])
 window = MainWindow(windowTitle='JulsDayScheduler')
 app.exec()

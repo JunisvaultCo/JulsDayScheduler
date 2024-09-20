@@ -1,6 +1,7 @@
 import ctypes
 import math
 import ctypes.wintypes
+from PyQt6.QtCore import *
 
 
 EnumWindows = ctypes.windll.user32.EnumWindows
@@ -13,6 +14,10 @@ IsWindowEnabled = ctypes.windll.user32.IsWindowEnabled
 IsIconic = ctypes.windll.user32.IsIconic
 GetWindowRect = ctypes.windll.user32.GetWindowRect
 GetForegroundWindow = ctypes.windll.user32.GetForegroundWindow
+GetAsyncKeyState = ctypes.windll.user32.GetAsyncKeyState
+GetCursorPos = ctypes.windll.user32.GetCursorPos
+GetMonitorInfoW = ctypes.windll.user32.GetMonitorInfoW
+MonitorFromPoint = ctypes.windll.user32.MonitorFromPoint
 
 windows = []
 
@@ -90,3 +95,49 @@ def GetForegroundWindowTitle():
     buf = ctypes.create_unicode_buffer("", length + 1)
     ctypes.windll.user32.GetWindowTextW(hwnd, buf, length + 1)
     return buf.value
+
+beforeX = -1
+beforeY = -1
+
+def CheckAnyActivitySinceLastTime() -> bool:
+    global beforeX, beforeY
+    newP = ctypes.wintypes.POINT()
+    GetCursorPos(ctypes.byref(newP))
+    if newP.x != beforeX:
+        beforeX = newP.x
+        return True
+    if newP.y != beforeY:
+        beforeY = newP.y
+        return True
+    #awful, but we do whatever we can. Why do I have to call the windows function for every key???|
+    for i in range(256):
+        ret = GetAsyncKeyState(ctypes.c_int(i))
+        if ret != 0:
+            return True
+    return False
+
+#cool, learned some about ctypes, but I don't need this
+#class MonitorInfo(ctypes.Structure):
+#    _fields_ = [
+#        ('cbSize', ctypes.wintypes.DWORD),
+#        ('rcMonitor', ctypes.wintypes.RECT),
+#        ('rcWork', ctypes.wintypes.RECT),
+#        ('dwFlags', ctypes.wintypes.DWORD)
+#        ]
+#  DWORD cbSize;
+#  RECT  rcMonitor;
+#  RECT  rcWork;
+#  DWORD dwFlags;
+
+
+#def GetWorkArea() -> QRect:
+#    newP = ctypes.wintypes.POINT()
+#    newP.x = 0
+#    newP.y = 0
+#    monitor = MonitorFromPoint(newP, ctypes.wintypes.DWORD(2))
+#    monitor_info = MonitorInfo()
+#    monitor_info.cbSize = ctypes.sizeof(MonitorInfo)
+#    GetMonitorInfoW(monitor, ctypes.byref(monitor_info))
+#    work_area = monitor_info.rcWork
+#    return QRect(work_area.left, work_area.top, work_area.right, work_area.bottom)
+  #  return QRect(0, 0, 200, 200)
