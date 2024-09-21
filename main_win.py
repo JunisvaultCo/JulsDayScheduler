@@ -18,6 +18,7 @@ GetAsyncKeyState = ctypes.windll.user32.GetAsyncKeyState
 GetCursorPos = ctypes.windll.user32.GetCursorPos
 GetMonitorInfoW = ctypes.windll.user32.GetMonitorInfoW
 MonitorFromPoint = ctypes.windll.user32.MonitorFromPoint
+GetLastInputInfo = ctypes.windll.user32.GetLastInputInfo
 
 windows = []
 
@@ -96,25 +97,25 @@ def GetForegroundWindowTitle():
     ctypes.windll.user32.GetWindowTextW(hwnd, buf, length + 1)
     return buf.value
 
-beforeX = -1
-beforeY = -1
+before = -1
 
+class LastInputInfo(ctypes.Structure):
+     _fields_ = [
+        ('cbSize', ctypes.wintypes.UINT),
+        ('dwTime', ctypes.wintypes.DWORD)
+        ]
+
+#look at https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getlastinputinfo
 def CheckAnyActivitySinceLastTime() -> bool:
-    global beforeX, beforeY
-    newP = ctypes.wintypes.POINT()
-    GetCursorPos(ctypes.byref(newP))
-    if newP.x != beforeX:
-        beforeX = newP.x
-        return True
-    if newP.y != beforeY:
-        beforeY = newP.y
-        return True
-    #awful, but we do whatever we can. Why do I have to call the windows function for every key???|
-    for i in range(256):
-        ret = GetAsyncKeyState(ctypes.c_int(i))
-        if ret != 0:
-            return True
-    return False
+    global before
+    lastInputInfo = LastInputInfo()
+    lastInputInfo.cbSize = ctypes.sizeof(LastInputInfo)
+    GetLastInputInfo(ctypes.byref(lastInputInfo))
+    current = lastInputInfo.dwTime
+    beforeF = before
+    before = current
+    return current != beforeF
+
 
 #cool, learned some about ctypes, but I don't need this
 #class MonitorInfo(ctypes.Structure):
