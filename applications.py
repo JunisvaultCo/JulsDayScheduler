@@ -10,7 +10,11 @@ def timeRepresentation(seconds):
     minutes = math.floor(seconds / 60) % 60
     hours = math.floor(seconds / 3600)
     seconds = seconds % 60
-    return str(hours) + "h " + str(minutes) + "m " + str(seconds) + "s" 
+    if hours != 0:
+        return str(hours) + "h " + str(minutes) + "m " + str(seconds) + "s"
+    if minutes != 0:
+        return str(minutes) + "m " + str(seconds) + "s"
+    return str(seconds) + "s"
 
 class App():
     def __init__(self, time, title):
