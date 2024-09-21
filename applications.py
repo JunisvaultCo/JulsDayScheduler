@@ -1,5 +1,7 @@
-import math
+from PyQt6.QtWidgets import *
+from PyQt6.QtCore import *
 
+import math
 
 TYPE_EQUAL = "equals"
 TYPE_ENDSWITH = "ends with"
@@ -110,3 +112,23 @@ class SearchItem():
             repr = repr + "\n" + str(i)
         return repr
 
+
+def addSearchItemToTreeWidgetItem(parent: QTreeWidgetItem, parentItem: SearchItem):
+    items = []
+    for searchItem in parentItem.subItems:
+        treeItem = QTreeWidgetItem(parent, [searchItem.name, timeRepresentation(searchItem.time)])
+        items.append(treeItem)
+        treeItem.addChildren(addSearchItemToTreeWidgetItem(treeItem, searchItem))
+    if parentItem.other != None:
+        treeItem = QTreeWidgetItem(parent, [parentItem.other.name, timeRepresentation(parentItem.other.time)])
+        treeItem.addChildren(addSearchItemToTreeWidgetItem(treeItem, parentItem.other))
+        items.append(treeItem)
+    return items
+
+def addSearchItemToTreeWidget(widget: QTreeWidget, searchItem: SearchItem):
+    widget.clear()
+    items = []
+    treeItem = QTreeWidgetItem(widget, [searchItem.name, timeRepresentation(searchItem.time)])
+    items.append(treeItem)
+    treeItem.addChildren(addSearchItemToTreeWidgetItem(items[-1], searchItem))
+    widget.addTopLevelItems(items)
