@@ -113,22 +113,22 @@ class SearchItem():
         return repr
 
 
-def addSearchItemToTreeWidgetItem(parent: QTreeWidgetItem, parentItem: SearchItem):
+def addSearchItemToTreeWidgetItem(parent: QTreeWidgetItem, parentItem: SearchItem, includeOther: bool):
     items = []
     for searchItem in parentItem.subItems:
         treeItem = QTreeWidgetItem(parent, [searchItem.name, timeRepresentation(searchItem.time)])
         items.append(treeItem)
-        treeItem.addChildren(addSearchItemToTreeWidgetItem(treeItem, searchItem))
-    if parentItem.other != None:
+        treeItem.addChildren(addSearchItemToTreeWidgetItem(treeItem, searchItem, includeOther))
+    if parentItem.other != None and includeOther:
         treeItem = QTreeWidgetItem(parent, [parentItem.other.name, timeRepresentation(parentItem.other.time)])
-        treeItem.addChildren(addSearchItemToTreeWidgetItem(treeItem, parentItem.other))
+        treeItem.addChildren(addSearchItemToTreeWidgetItem(treeItem, parentItem.other, includeOther))
         items.append(treeItem)
     return items
 
-def addSearchItemToTreeWidget(widget: QTreeWidget, searchItem: SearchItem):
+def addSearchItemToTreeWidget(widget: QTreeWidget, searchItem: SearchItem, includeOther: bool):
     widget.clear()
     items = []
     treeItem = QTreeWidgetItem(widget, [searchItem.name, timeRepresentation(searchItem.time)])
     items.append(treeItem)
-    treeItem.addChildren(addSearchItemToTreeWidgetItem(items[-1], searchItem))
+    treeItem.addChildren(addSearchItemToTreeWidgetItem(items[-1], searchItem, includeOther))
     widget.addTopLevelItems(items)

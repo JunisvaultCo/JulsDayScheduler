@@ -10,6 +10,7 @@ from modify_options_day_scheduler import OptionsWindow
 from visualizer_times import VisualizerTimes
 from applications import *
 from afkwindow import AfkWindow
+from workwindow import WorkWindow
 
 DEFAULT_MAX_AFK = 30
 app = QApplication([])
@@ -44,6 +45,9 @@ class MainWindow(QMainWindow):
         b.pressed.connect(self.open_modify_options)
         layout.addWidget(b)
 
+        self.modeButton = QPushButton()
+        layout.addWidget(self.modeButton)
+
         w = QWidget()
         w.setLayout(layout)
 
@@ -67,6 +71,9 @@ class MainWindow(QMainWindow):
         self.afkTime = DEFAULT_MAX_AFK
         self.afkWindow = None
         self.isAFK = False
+        self.workWindow = None
+        self.workMode = False
+        self.setModeButton(False)
         
     def open_modify_options(self):
         if self.options_window == None or self.options_window.isHidden():
@@ -157,6 +164,29 @@ class MainWindow(QMainWindow):
         with open(self.options_file_name, 'w') as file:
             file.write(json.dumps(self.options))
         self.updateAggregated(False, "")
+    
+    def setModeButton(self, setBefore: bool):
+        if not self.workMode:
+            self.modeButton.setText("Start Work Mode")
+            self.modeButton.pressed.connect(self.popWorkWindow)
+            if setBefore:
+                self.modeButton.pressed.disconnect(self.stopWorkMode)
+        else:
+            self.modeButton.setText("Stop Work Mode")
+            if setBefore:
+                self.modeButton.pressed.disconnect(self.popWorkWindow)
+            self.modeButton.pressed.connect(self.stopWorkMode)
+
+    def popWorkWindow(self):
+        self.workWindow = WorkWindow(self.checkers)
+
+    def startWorkMode(self):
+        self.workMode = True
+        self.setModeButton(True)
+    
+    def stopWorkMode(self):
+        self.workMode = False
+        self.setModeButton(True)
 
 
 window = MainWindow(windowTitle='JulsDayScheduler')

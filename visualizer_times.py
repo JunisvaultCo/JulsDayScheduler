@@ -21,7 +21,7 @@ class VisualizerTimes(QWidget):
         self.qlw.addItems(list)
 
     def setAggregated(self, searchItem: SearchItem):
-        addSearchItemToTreeWidget(self.qtw, searchItem)
+        addSearchItemToTreeWidget(self.qtw, searchItem, True)
     
     def updateAggregated(self, listSearchItem: list[SearchItem]):
         for searchItem in listSearchItem:
