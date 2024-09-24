@@ -1,11 +1,9 @@
-import time
-import json
-import os.path
 from applications import *
 from PyQt6.QtWidgets import *
 from PyQt6.QtCore import *
 
 class OptionsLine(QWidget):
+    remove_sig = pyqtSignal(QWidget)
     def __init__(self, number, definingOption, *args, **kwargs):
         super(OptionsLine, self).__init__(*args, **kwargs)
         self.storedState = definingOption
@@ -59,16 +57,20 @@ class OptionsLine(QWidget):
             newI = OptionsLine(num, i)
             self.children.append(newI)
             self.layoutOut.addWidget(newI)
+            newI.remove_sig.connect(self.remove_child)
 
     def add_option(self):
         num = self.number + "." + str(len(self.children) + 1)
         newChild = OptionsLine(num, {"type": TYPE_EQUAL, "name": "", "others": [], "pattern": ""})
         self.children.append(newChild)
         self.layoutOut.addWidget(newChild)
+        newChild.remove_sig.connect(self.remove_child)
 
-    #TODO: come back to this lmao
     def remove_option(self):
-        pass
+        self.remove_sig.emit(self)
+    def remove_child(self, childLine: QWidget):
+        self.children.remove(childLine)
+        self.layoutOut.removeWidget(childLine)
     
     def getState(self):
         self.storedState = {"type": self.typeL.currentText(), "name": self.nameL.text(), "pattern": self.patternL.text(), "others": []}

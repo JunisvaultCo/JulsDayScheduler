@@ -6,4 +6,4 @@ the how do we fix afk and work mode interactions?
 		resets out counter? it only once again affects that the work mode time will actually take into
 		consideration time that might have been afk. Another reason why we should wait until it's clear it's not afk.
 
--> fix the damn inability to remove an option PLEASE.
+- fix the damn inability to remove an option PLEASE. -> done!
