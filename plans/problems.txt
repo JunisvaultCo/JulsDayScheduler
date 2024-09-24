@@ -1,0 +1,9 @@
+the how do we fix afk and work mode interactions?
+	-> the problem: afk time can go to good things.
+		-> the solution: during afk stop adding to work mode. Only add to work mode when the result is obvious
+			(and then spawn another warning if it's the case)
+	-> another problem: if the work mode warning appears first, the afk window will... wait, I don't think it
+		resets out counter? it only once again affects that the work mode time will actually take into
+		consideration time that might have been afk. Another reason why we should wait until it's clear it's not afk.
+
+-> fix the damn inability to remove an option PLEASE.

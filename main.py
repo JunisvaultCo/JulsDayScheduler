@@ -42,6 +42,15 @@ class MainWindow(QMainWindow):
         self.visualizer = VisualizerTimes()
         layout.addWidget(self.visualizer)
 
+        goodTimesGroup = QGroupBox()
+        layoutGood = QHBoxLayout()
+        goodTimesGroup.setLayout(layoutGood)
+        self.totalGoodTimeLabel = QLabel()
+        self.currentGoodTimeLabel = QLabel()
+        layoutGood.addWidget(self.currentGoodTimeLabel)
+        layoutGood.addWidget(self.totalGoodTimeLabel)
+        layout.addWidget(goodTimesGroup)
+
         b = QPushButton("Modify options")
         b.pressed.connect(self.open_modify_options)
         layout.addWidget(b)
@@ -77,6 +86,8 @@ class MainWindow(QMainWindow):
         self.maxAllowedBadTime = 0
         self.currentBadTime = 0
         self.totalBadTime = 0
+        self.currentGoodTime = 0
+        self.totalGoodTime = 0
         self.setModeButton(False)
         self.window_warning = None
         self.show()
@@ -169,13 +180,20 @@ class MainWindow(QMainWindow):
             for i in self.allowedCheckers:
                 if i.checker.applies(result):
                     ok = True
+                    self.currentGoodTime += 1
+                    self.totalGoodTime += 1
+
             if not ok:
-                self.currentBadTime = self.currentBadTime + 1
-                self.totalBadTime = self.totalBadTime + 1
+                self.currentBadTime += 1
+                self.totalBadTime += 1
                 if self.currentBadTime == self.maxAllowedBadTime + 1:
                     screenrect = app.primaryScreen().availableGeometry()
                     self.window_warning = WindowWarning(timeRepresentation(self.totalBadTime), screenrect)
                     self.window_warning.end_sig.connect(self.returnFromBad)
+            self.currentGoodTimeLabel.setText("Current time spent well: " + timeRepresentation(self.currentGoodTime))
+        else:
+            self.currentGoodTimeLabel.setText("Work mode not currently on!")
+        self.totalGoodTimeLabel.setText("Total time spent well: " + timeRepresentation(self.totalGoodTime))
 
     def setOptions(self, options):
         self.options = options
@@ -203,6 +221,7 @@ class MainWindow(QMainWindow):
             self.workWindow.show()
 
     def startWorkMode(self, options_sig: list[str], maxBadTime: int):
+        self.currentGoodTime = 0
         self.allowedCheckers = []
         for i in options_sig:
             self.allowedCheckers.append(self.checkers.find(i))

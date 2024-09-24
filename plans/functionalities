@@ -12,10 +12,13 @@
             - okay, so you make a list of the currently detected apps as tree and delete from the tree
                 - so let's try first to do just the list with the time bad, to test out the layout
         - "You wasted 5 mins since last warning on "fun" apps.
-        - what do we do with intersections of AFK and work mode warnings? 
+        -> what do we do with intersections of AFK and work mode warnings? 
                 -> Just keep them both? No, the interactions are going to be really messy.
+        -> change options of work mode without stopping it
 - break mode: just track Facebook, Twitter, Youtube, reddit, discord -> done!
 
+- have a place on the main widget to see how much time has been spent on the right thing. -> done!
+-> save the total bad and good work mode data?
 -> allow putting alarms
 - save files -> done!
 -> add some day counters
