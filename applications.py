@@ -106,6 +106,17 @@ class SearchItem():
             result.extend(self.other.apply(string, time))
         return result
 
+    def find(self, name: str):
+        if self.name == name:
+            return self
+        for i in self.subItems:
+            result = i.find(name)
+            if result != None:
+                return result
+        if self.other != None:
+            return self.other.find(name)
+        return None
+
     def __repr__(self):
         repr = "\t" * self.level + self.name + ": " + timeRepresentation(self.time)
         for i in self.subItems:

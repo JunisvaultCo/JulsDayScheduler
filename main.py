@@ -73,6 +73,9 @@ class MainWindow(QMainWindow):
         self.isAFK = False
         self.workWindow = None
         self.workMode = False
+        self.allowedCheckers = []
+        self.maxAllowedBadTime = 0
+        self.currentBadTime = 0
         self.setModeButton(False)
         
     def open_modify_options(self):
@@ -158,6 +161,17 @@ class MainWindow(QMainWindow):
         
         with open(self.file_name, 'w') as file:
             file.write(json.dumps(self.times))
+        if self.workMode:
+            ok = False
+            for i in self.allowedCheckers:
+                if i.checker.applies(result):
+                    ok = True
+            if not ok:
+                self.currentBadTime = self.currentBadTime + 1
+                if self.currentBadTime > self.maxAllowedBadTime:
+                    print("bad, bad bad", timeRepresentation(self.currentBadTime))
+            else:
+                self.currentBadTime = 0
 
     def setOptions(self, options):
         self.options = options
@@ -179,11 +193,16 @@ class MainWindow(QMainWindow):
 
     def popWorkWindow(self):
         self.workWindow = WorkWindow(self.checkers)
+        self.workWindow.options_sig.connect(self.startWorkMode)
 
-    def startWorkMode(self):
+    def startWorkMode(self, options_sig: list[str], maxBadTime: int):
+        self.allowedCheckers = []
+        for i in options_sig:
+            self.allowedCheckers.append(self.checkers.find(i))
+        self.maxAllowedBadTime = maxBadTime
         self.workMode = True
         self.setModeButton(True)
-    
+
     def stopWorkMode(self):
         self.workMode = False
         self.setModeButton(True)
