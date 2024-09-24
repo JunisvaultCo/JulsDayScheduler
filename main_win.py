@@ -115,30 +115,3 @@ def CheckAnyActivitySinceLastTime() -> bool:
     beforeF = before
     before = current
     return current != beforeF
-
-
-#cool, learned some about ctypes, but I don't need this
-#class MonitorInfo(ctypes.Structure):
-#    _fields_ = [
-#        ('cbSize', ctypes.wintypes.DWORD),
-#        ('rcMonitor', ctypes.wintypes.RECT),
-#        ('rcWork', ctypes.wintypes.RECT),
-#        ('dwFlags', ctypes.wintypes.DWORD)
-#        ]
-#  DWORD cbSize;
-#  RECT  rcMonitor;
-#  RECT  rcWork;
-#  DWORD dwFlags;
-
-
-#def GetWorkArea() -> QRect:
-#    newP = ctypes.wintypes.POINT()
-#    newP.x = 0
-#    newP.y = 0
-#    monitor = MonitorFromPoint(newP, ctypes.wintypes.DWORD(2))
-#    monitor_info = MonitorInfo()
-#    monitor_info.cbSize = ctypes.sizeof(MonitorInfo)
-#    GetMonitorInfoW(monitor, ctypes.byref(monitor_info))
-#    work_area = monitor_info.rcWork
-#    return QRect(work_area.left, work_area.top, work_area.right, work_area.bottom)
-  #  return QRect(0, 0, 200, 200)
