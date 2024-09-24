@@ -11,6 +11,7 @@ from visualizer_times import VisualizerTimes
 from applications import *
 from afkwindow import AfkWindow
 from workwindow import WorkWindow
+from window_warning import WindowWarning
 
 DEFAULT_MAX_AFK = 30
 app = QApplication([])
@@ -53,7 +54,6 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(w)
 
-        self.show()
 
         self.checkers = None
         self.options = {"name": "All", "others": [], "pattern": "", "type": TYPE_CONTAINS}
@@ -76,7 +76,10 @@ class MainWindow(QMainWindow):
         self.allowedCheckers = []
         self.maxAllowedBadTime = 0
         self.currentBadTime = 0
+        self.totalBadTime = 0
         self.setModeButton(False)
+        self.window_warning = None
+        self.show()
         
     def open_modify_options(self):
         if self.options_window == None or self.options_window.isHidden():
@@ -168,10 +171,11 @@ class MainWindow(QMainWindow):
                     ok = True
             if not ok:
                 self.currentBadTime = self.currentBadTime + 1
-                if self.currentBadTime > self.maxAllowedBadTime:
-                    print("bad, bad bad", timeRepresentation(self.currentBadTime))
-            else:
-                self.currentBadTime = 0
+                self.totalBadTime = self.totalBadTime + 1
+                if self.currentBadTime == self.maxAllowedBadTime + 1:
+                    screenrect = app.primaryScreen().availableGeometry()
+                    self.window_warning = WindowWarning(timeRepresentation(self.totalBadTime), screenrect)
+                    self.window_warning.end_sig.connect(self.returnFromBad)
 
     def setOptions(self, options):
         self.options = options
@@ -192,8 +196,11 @@ class MainWindow(QMainWindow):
             self.modeButton.pressed.connect(self.stopWorkMode)
 
     def popWorkWindow(self):
-        self.workWindow = WorkWindow(self.checkers)
-        self.workWindow.options_sig.connect(self.startWorkMode)
+        if self.workWindow == None:
+            self.workWindow = WorkWindow(self.checkers)
+            self.workWindow.options_sig.connect(self.startWorkMode)
+        else:
+            self.workWindow.show()
 
     def startWorkMode(self, options_sig: list[str], maxBadTime: int):
         self.allowedCheckers = []
@@ -206,6 +213,8 @@ class MainWindow(QMainWindow):
     def stopWorkMode(self):
         self.workMode = False
         self.setModeButton(True)
+    def returnFromBad(self):
+        self.currentBadTime = 0
 
 
 window = MainWindow(windowTitle='JulsDayScheduler')

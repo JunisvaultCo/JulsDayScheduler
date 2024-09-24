@@ -6,17 +6,20 @@
         - give option to still track this time as main app or other
     -> be able to set it up yourself?
     
--> work mode: have a set of apps that are "allowed" to be in main view.
-    -> any distraction from these apps more than 5 mins will lead to a screenwide warning
-        -> means these have to be specifically selected beforehand
-            -> okay, so you make a list of the currently detected apps as tree and delete from the tree
-                -> so let's try first to do just the list with the time bad, to test out the layout
-        -> "You wasted 5 mins since last warning on "fun" apps.
+- work mode: have a set of apps that are "allowed" to be in main view. -> done!
+    - any distraction from these apps more than 5 mins will lead to a screenwide warning
+        - means these have to be specifically selected beforehand
+            - okay, so you make a list of the currently detected apps as tree and delete from the tree
+                - so let's try first to do just the list with the time bad, to test out the layout
+        - "You wasted 5 mins since last warning on "fun" apps.
+        - what do we do with intersections of AFK and work mode warnings? 
+                -> Just keep them both? No, the interactions are going to be really messy.
 - break mode: just track Facebook, Twitter, Youtube, reddit, discord -> done!
 
 -> allow putting alarms
 - save files -> done!
--> add some day counters and maybe goals
+-> add some day counters
+    -> maybe goals
     -> or maybe make day end and save it in a file
 -> stats per hours of the day.
 

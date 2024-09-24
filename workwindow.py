@@ -82,12 +82,24 @@ class WorkWindow(QMainWindow):
         s = getUnit(text, "s")
         if h == -1 or m == -1 or s == -1:
             return -1
+        pattern = re.compile("(([0-9])+[^hms0-9])|(([0-9])+( )*$)|([^0-9][hms])|([^0-9hms ])|(^[hms])")
+        if pattern.search(text) != None:
+            return -1
+
         result = h * 60 * 60 + m * 60 + s
         return result
 
     def startWork(self):
         secondsAllowedBad = self.getTextEditToSeconds()
         if secondsAllowedBad == -1:
+            msgBox = QMessageBox()
+            msgBox.setText("Allowed format for time: 1h 2m 3s.")
+            msgBox.exec()
+            return
+        if secondsAllowedBad < 3:
+            msgBox = QMessageBox()
+            msgBox.setText("Use at least 3 seconds!")
+            msgBox.exec()
             return
         self.hide()
         rowCount = self.desiredList.model().rowCount()
