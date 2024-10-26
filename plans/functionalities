@@ -18,7 +18,15 @@
 - break mode: just track Facebook, Twitter, Youtube, reddit, discord -> done!
 
 - have a place on the main widget to see how much time has been spent on the right thing. -> done!
--> save the total bad and good work mode data?
+-> save the total bad and good work mode data in a file?
+
+-> start saving them in a different way as we were saying:
+    -> save hour minute and second of start of an activity. As well as work mode.
+
+-> afk mode instead continues counting whatever it sees and gives you several options:
+    -> label it as nothing
+    -> label it as a name (like until now)
+    -> label it as combo of all that have been since you last didn't press? I guess
 
 -> allow putting alarms
 - save files -> done!
@@ -26,15 +34,17 @@
     -> maybe goals
     -> or maybe make day end and save it in a file
 -> stats per hours of the day.
+    -> have them drawn with a special widget as name, total time, + LINES okay?
 
 -> several lists of options (files)
 -> more filters
 -> ability to select a particular window entry as belonging somewhere else.
+    -> this sounds really really sucky.
 -> categories that are made only of their contents (a checkbox in the settings whether Misc even exists)
 
 -> fix someone looking in a Notepad - Untitled * Tab.
 -> fix no Linux version
--> fix repeated names + Misc names
+-> fix repeated names + Misc names in the option settings
 - fix the timing issue (use an actual timer?) -> done!
 - fix not recognising scrolling -> done!
 

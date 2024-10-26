@@ -5,5 +5,12 @@ the how do we fix afk and work mode interactions?
 	-> another problem: if the work mode warning appears first, the afk window will... wait, I don't think it
 		resets out counter? it only once again affects that the work mode time will actually take into
 		consideration time that might have been afk. Another reason why we should wait until it's clear it's not afk.
+	-> what about if someone is watching something? we should be giving a warning nonetheless
+
+-> alternatively start saving them in a different way as we were saying:
+save hour minute and second of start of an activity. As well as work mode.
+	-> let's go with this.
 
 - fix the damn inability to remove an option PLEASE. -> done!
+
+-> fix work mode window not having the latest options

@@ -27,10 +27,13 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__(*args, **kwargs)
 
         self.times = {}
+        self.betterTimes = {"other": [], "work": []}
+        self.better_file_name = time.strftime("%d_%m_%y_better_times.txt")
+        if os.path.exists(self.better_file_name):
+            with open(self.better_file_name, 'r') as file:
+                self.betterTimes = json.load(file)
+
         self.file_name = time.strftime("%d_%m_%y_times.txt")
-        if os.path.exists(self.file_name):
-            with open(self.file_name, 'r') as file:
-                self.times = json.load(file)
         #TODO: add more options files as options
         self.options_file_name = "options.json"
 
@@ -56,13 +59,13 @@ class MainWindow(QMainWindow):
         layout.addWidget(b)
 
         self.modeButton = QPushButton()
+        self.modeButton.pressed.connect(self.workButtonWork)
         layout.addWidget(self.modeButton)
 
         w = QWidget()
         w.setLayout(layout)
 
         self.setCentralWidget(w)
-
 
         self.checkers = None
         self.options = {"name": "All", "others": [], "pattern": "", "type": TYPE_CONTAINS}
@@ -84,13 +87,13 @@ class MainWindow(QMainWindow):
         self.workMode = False
         self.allowedCheckers = []
         self.maxAllowedBadTime = 0
-        self.currentBadTime = 0
         self.totalBadTime = 0
-        self.currentGoodTime = 0
         self.totalGoodTime = 0
-        self.setModeButton(False)
+        self.getTimesFromBetter()
+        self.setModeButton()
         self.window_warning = None
         self.show()
+        self.betterTimes["other"].append({"name": None, "start": 0})
         
     def open_modify_options(self):
         if self.options_window == None or self.options_window.isHidden():
@@ -140,23 +143,42 @@ class MainWindow(QMainWindow):
                 self.afkWindow.setTime(timeRepresentation(self.timeWithoutMods))
 
         if not self.isAFK:
+            timeS = int(time.time())
+            if result != self.betterTimes["other"][-1]["name"]:
+                self.betterTimes["other"][-1]["end"] = timeS
+                if self.betterTimes["other"][-1]["name"] != None:
+                    self.betterTimes["other"].append(self.betterTimes["other"][-1])
+                self.betterTimes["other"][-1] = {"name": result, "start": timeS, "end": timeS}
+            else:
+                self.betterTimes["other"][-1]["end"] = timeS
+
             self.updateResult(result, 1)
         else:
             self.updateResult(result, 0)
 
     def returnFromAfk(self, option):
-        self.updateResult(option, self.timeWithoutMods)
-        self.updateResult(self.afkWindow.option, - self.afkTime)
+        if self.betterTimes["other"][-1]["name"] != option:
+            timeS = int(time.time())
+            self.betterTimes["other"][-1]["end"] = timeS - self.timeWithoutMods
+            self.betterTimes["other"].append({"name": option, "start": timeS - self.timeWithoutMods, "end": timeS})
+        self.getTimesFromBetter()
         self.timeWithoutMods = 0
         self.isAFK = False
         self.afkWindow.showLabel()
-
-    def updateResult(self, result: str, time: int):
-        if result in self.times:
-            self.times[result] += time
+    
+    def setGoodAndBadText(self):
+        self.totalGoodTimeLabel.setText("Total time spent well: " + timeRepresentation(self.totalGoodTime))
+        if self.workMode:
+            self.currentGoodTimeLabel.setText("Current time spent well: " + timeRepresentation(self.betterTimes["work"][-1]["goodTime"]))
         else:
-            self.times[result] = time
-        self.updateAggregated(True, result, time)
+            self.currentGoodTimeLabel.setText("Work mode not currently on!")
+
+    def updateResult(self, result: str, seconds: int):
+        if result in self.times:
+            self.times[result] += seconds
+        else:
+            self.times[result] = seconds
+        self.updateAggregated(True, result, seconds)
         if self.visualizer.qtw.currentItem() == None:
             self.visualizer.qtw.setCurrentItem(self.visualizer.qtw.itemAt(0, 0))
         nameFilter = self.visualizer.qtw.currentItem().data(0, Qt.ItemDataRole.DisplayRole)
@@ -172,28 +194,45 @@ class MainWindow(QMainWindow):
         for i in sortedList:
             output.append(str(i))
         self.visualizer.setDetailed(output)
-        
-        with open(self.file_name, 'w') as file:
-            file.write(json.dumps(self.times))
+            
+        with open(self.better_file_name, 'w') as file:
+            file.write(json.dumps(self.betterTimes))
+        self.runWorkCheckers(result, 1)
+        self.setGoodAndBadText()
+
+
+    def runWorkCheckers(self, result: str, add: int = 1):
         if self.workMode:
             ok = False
             for i in self.allowedCheckers:
                 if i.checker.applies(result):
                     ok = True
-                    self.currentGoodTime += 1
-                    self.totalGoodTime += 1
-
+                    break
             if not ok:
-                self.currentBadTime += 1
-                self.totalBadTime += 1
+                self.betterTimes["work"][-1]["badTime"] += add
+                self.totalBadTime += add
                 if self.currentBadTime == self.maxAllowedBadTime + 1:
                     screenrect = app.primaryScreen().availableGeometry()
                     self.window_warning = WindowWarning(timeRepresentation(self.totalBadTime), screenrect)
                     self.window_warning.end_sig.connect(self.returnFromBad)
-            self.currentGoodTimeLabel.setText("Current time spent well: " + timeRepresentation(self.currentGoodTime))
-        else:
-            self.currentGoodTimeLabel.setText("Work mode not currently on!")
-        self.totalGoodTimeLabel.setText("Total time spent well: " + timeRepresentation(self.totalGoodTime))
+            else:
+                self.betterTimes["work"][-1]["goodTime"] += add
+                self.totalGoodTime += add
+            self.betterTimes["work"][-1]["end"] = int(time.time())
+    
+    def getTimesFromBetter(self):
+        self.times = {}
+        for i in self.betterTimes["other"]:
+            if i["name"] not in self.times.keys():
+                self.times[i["name"]] = 0
+            self.times[i["name"]] += i["end"] - i["start"]
+            if self.workMode:
+                self.runWorkCheckers(i["name"], i["end"] - i["start"])
+        for j in self.betterTimes["work"]:
+            if (not self.workMode or j != self.betterTimes["work"][-1]) and "goodTime" in j.keys():
+                self.totalGoodTime += j["goodTime"]
+                self.totalBadTime += j["badTime"]
+        self.updateAggregated(False, "")
 
     def setOptions(self, options):
         self.options = options
@@ -201,17 +240,17 @@ class MainWindow(QMainWindow):
             file.write(json.dumps(self.options))
         self.updateAggregated(False, "")
     
-    def setModeButton(self, setBefore: bool):
+    def setModeButton(self):
         if not self.workMode:
             self.modeButton.setText("Start Work Mode")
-            self.modeButton.pressed.connect(self.popWorkWindow)
-            if setBefore:
-                self.modeButton.pressed.disconnect(self.stopWorkMode)
         else:
             self.modeButton.setText("Stop Work Mode")
-            if setBefore:
-                self.modeButton.pressed.disconnect(self.popWorkWindow)
-            self.modeButton.pressed.connect(self.stopWorkMode)
+
+    def workButtonWork(self):
+        if not self.workMode:
+            self.popWorkWindow()
+        else:
+            self.stopWorkMode()
 
     def popWorkWindow(self):
         if self.workWindow == None:
@@ -227,11 +266,13 @@ class MainWindow(QMainWindow):
             self.allowedCheckers.append(self.checkers.find(i))
         self.maxAllowedBadTime = maxBadTime
         self.workMode = True
-        self.setModeButton(True)
+        timeS = int(time.time())
+        self.betterTimes["work"].append({"start": timeS, "end": timeS, "goodTime": 0, "badTime": 0})
+        self.setModeButton()
 
     def stopWorkMode(self):
         self.workMode = False
-        self.setModeButton(True)
+        self.setModeButton()
     def returnFromBad(self):
         self.currentBadTime = 0
 
