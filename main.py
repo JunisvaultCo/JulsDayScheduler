@@ -157,10 +157,12 @@ class MainWindow(QMainWindow):
             self.updateResult(result, 0)
 
     def returnFromAfk(self, option):
+        timeS = int(time.time())
         if self.betterTimes["other"][-1]["name"] != option:
-            timeS = int(time.time())
             self.betterTimes["other"][-1]["end"] = timeS - self.timeWithoutMods
             self.betterTimes["other"].append({"name": option, "start": timeS - self.timeWithoutMods, "end": timeS})
+        else:
+            self.betterTimes["other"][-1]["end"] = timeS
         self.getTimesFromBetter()
         self.timeWithoutMods = 0
         self.isAFK = False
